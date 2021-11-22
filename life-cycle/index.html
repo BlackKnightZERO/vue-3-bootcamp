@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box{
+            margin: 10px;
+            width: 100px;
+            height: 100px;
+            background-color: aqua;
+        }
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <button @click="toggleBox">toggle</button>
+        <box-component v-if="isBoxVisible"></box-component>
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script>
+        let app = Vue.createApp({
+            data() {
+                return {
+                    isBoxVisible: false
+                }
+            },
+            methods: {
+                toggleBox(){
+                    this.isBoxVisible = !this.isBoxVisible
+                },
+            },
+            updated() {
+                console.log('Life-Cycle : updated()');
+            }
+        })
+        app.component('box-component', {
+            template:
+            `<div class="box"></div>`,
+            created() {
+                console.log('Life-Cycle : created()');
+            },
+            mounted() {
+                console.log('Life-Cycle : mounted()');
+            },
+            unmounted() {
+                console.log('Life-Cycle : unmounted()');
+            }
+        })
+        app.mount('#app');
+    </script>
+</body>
+</html>

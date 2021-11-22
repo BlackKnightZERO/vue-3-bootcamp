@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        .box{
+            background-color: blueviolet;
+            height: 100px;
+            width: 100px;
+            margin:10px;
+        }
+        .box2{
+            background-color:chartreuse;
+            height: 100px;
+            width: 100px;
+            margin:10px;
+        }
+        .box3{
+            background-color:coral;
+            height: 100px;
+            width: 100px;
+            margin:10px;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        input{
+            margin:10px;
+            display: block;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="app" v-cloak>
+        <h4>{{ headerTitle }}</h4>
+        <input type="text" v-model="headerTitle" @keyup.enter="enterPressed('Alert : Enter Pressed')"> 
+        <!-- event-modifier  -->
+
+        <div v-if="isVisible" class="box">v-if : DOM Not Rendered</div>
+        <div v-else-if="isVisible2" class="box2">v-else-if</div>
+        <div v-else class="box">v-else</div>
+
+        <div v-show="isVisible3" class="box3">v-show :DOM Rendered : Display Hidden</div>
+    
+        <button @click.prevent.stop="toggleBox"><span id="button-text">show</span> box</button>
+        <!-- <button @click.right="alert('Right Button Pressed')">right-mouse</button> -->
+        <!-- event-modifier  -->
+
+        <form-component></form-component>
+    
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script>
+        let app = Vue.createApp({
+            data() {
+                return {
+                    headerTitle: 'Vue Js 3',
+                    isVisible: true,
+                    isVisible2:true,
+                    isVisible3:false,
+                }
+            },
+            methods: {
+                toggleBox() {
+                    domObject = document.getElementById('button-text');
+                    let buttonText = domObject.innerHTML;
+                    (buttonText==='show') ? domObject.innerHTML = 'hide' : domObject.innerHTML = 'show'
+                    this.isVisible3 = !this.isVisible3;
+                },
+                enterPressed(message){
+                    alert(message);
+                }
+            }
+        })
+        // app.component('form-component', {
+        //     template : 
+        //     `
+        //     <form @submit.prevent="handleSubmit">
+        //         <h4>{{ title }}</h4>
+        //         <input type="email" v-model="email" />    
+        //         <input type="password" v-model="password" />   
+        //         <button>login</button> 
+        //     </form>
+        //     `,
+        //     data(){
+        //         return {
+        //             title: 'Login Form',
+        //             email: '',
+        //             password: '',
+        //         }
+        //     },
+        //     methods: {
+        //         handleSubmit() {
+        //             alert(`email: ${this.email} & password: ${this.password}`);
+        //         }
+        //     }
+        // })
+
+        app.component('form-component', {
+            template : 
+            `
+            <form @submit.prevent="handleSubmit">
+                <h4>{{ title }}</h4>
+
+                <!--
+                <input-component v-model="email" :propsLabel="emailLabel" />    
+                <input-component v-model="password" propsLabel="Password (props passed as string)" />   
+                -->
+
+                <input-component 
+                    v-for="(input,idx) in inputs" 
+                    v-model="input.value"
+                    :propsInputLabel="input.label"
+                    :propsInputType="input.type" />
+                <button>login</button> 
+
+                <!-- <p v-for="(input,idx) in inputs" key="idx">{{ input }}</p> -->
+            </form>
+            `,
+
+            components:['input-component'],
+
+            data(){
+                return {
+                    title: 'Login Form',
+                    email: '',
+                    password: '',
+                    emailLabel: 'E-mail',
+                    passwordLabel: 'Password',
+
+                    inputs:[
+                        {
+                            label: 'E-Mail',
+                            value:'',
+                            type: 'email',
+                        },
+                        {
+                            label: 'Password',
+                            value:'',
+                            type: 'password',
+                        }
+                    ]
+                }
+            },
+
+            methods: {
+                handleSubmit() {
+                    // alert(`email: ${this.email} & password: ${this.password}`);
+                    alert(`${this.inputs[0].value} : ${this.inputs[1].value}`);
+                }
+            }
+        })
+
+        app.component('input-component',{
+            template: 
+            `
+                <label>{{ propsInputLabel }}</label>
+                <input :type="propsInputType" v-model="inputValue" /> 
+            `,
+            props:['propsInputLabel', 'modelValue', 'propsInputType'],
+            computed: {
+                inputValue: {
+                    get(){
+                        return this.modelValue;
+                    },
+                    set(value){
+                        this.$emit('update:modelValue', value)
+                    }
+                }
+            },
+            // data(){
+            //     return {
+            //         inputValue: ''
+            //     }
+            // }
+        })
+        
+        app.mount('#app')
+    </script>
+
+</body>
+</html>
