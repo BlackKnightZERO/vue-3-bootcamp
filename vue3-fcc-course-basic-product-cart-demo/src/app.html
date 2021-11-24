@@ -13,11 +13,14 @@
         text-align: center;
         padding-top: 27px;
       }
+      [v-cloak] {
+        display: none;
+      }
     </style>
   </head>
   <body>
 
-    <div id="app">
+    <div id="app" v-cloak>
 
       <header class="top-bar spread">
         <nav class="top-bar-nav">
@@ -32,9 +35,9 @@
             <span>Past Orders</span>
           </a>
         </nav>
-        <a href="#" class="top-bar-cart-link">
+        <a href="#" class="top-bar-cart-link" @click="toggleSideBarCart">
           <i class="icofont-cart-alt icofont-1x"></i>
-          <span>Cart (0)</span>
+          <span id="nav-cart-item-count">Cart (0)</span>
         </a>
       </header>
 
@@ -170,6 +173,12 @@
 
       </main>
 
+      <cart-sidebar-component 
+        v-if="isSideBarCartVisible" 
+        :toggle="toggleSideBarCart"
+        :cart="cart"
+        ></cart-sidebar-component>
+
       <footer class="footer-class">
         vue 3
       </footer>
@@ -177,7 +186,9 @@
     </div>
       
     <script src="https://unpkg.com/vue@next"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
     <script>
+
       let app = Vue.createApp({
         data() {
           return {
@@ -190,17 +201,100 @@
               carrots: 0,
               pineapples: 0,
               cherries: 0
-            }
+            },
+            isSideBarCartVisible: false,
+            totalCartItemType:0,
           }
         },
         methods: {
           addToCart(type) {
             this.cart[type] += this.inventory[type]
             console.log(this.cart)
+
+          },
+          toggleSideBarCart(){
+            this.isSideBarCartVisible = !this.isSideBarCartVisible
           }
+        },
+        async mounted(){
+          const res = await fetch('./food.json')
+          const foodData = await res.json();
+          this.inventory = foodData;
+
+
+          // const res = await axios.get('./food.json', { responseType: 'blob'})
+          //                   .then((res) => console.log(res.json()))
+          //                   .then((res) => this.inventory = res.json())
+          //                   .catch((err)=>console.log(err))
         }
       })
 
+      app.component('cart-sidebar-component',{
+        props:['toggle', 'cart'], // don't use camel case for propsName
+        computed:{
+          // cartTotal(){
+          //   return cart.carrots * 4.82; 
+          // }
+
+          cartTotal:{
+            get(){
+              return (this.cart.carrots * 4.82).toFixed(2)
+            },
+            set(value){
+
+            }
+          }
+        },
+        template:
+        `
+        <aside class="cart-container">
+        <div class="cart">
+          <h1 class="cart-title spread">
+            <span>
+              Cart
+              <i class="icofont-cart-alt icofont-1x"></i>
+            </span>
+            <button @click="toggle" class="cart-close" >&times;</button>
+          </h1>
+
+          <div class="cart-body">
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th><span class="sr-only">Product Image</span></th>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><i class="icofont-carrot icofont-3x"></i></td>
+                  <td>Carrot</td>
+                  <td>$4.82</td>
+                  <td class="center">{{ cart.carrots }}</td>
+                  <td>$\{{ (cart.carrots * 4.82).toFixed(2)}}</td>
+                  <td class="center">
+                    <button class="btn btn-light cart-remove">
+                      &times;
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p class="center"><em>No items in cart</em></p>
+            <div class="spread">
+              <span><strong>Total:</strong> $\{{cartTotal}}</span>
+              <button class="btn btn-light">Checkout</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+        `,
+      })
       app.mount('#app')
     </script>
   </body>
